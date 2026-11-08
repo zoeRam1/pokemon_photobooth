@@ -1,6 +1,7 @@
-import { STK, type PlacedSticker } from "./data";
+import { STK, type PlacedSticker, type StickerDef } from "./data";
 import { drawFace, shapeParts } from "./shapes";
 import { rr } from "./draw-utils";
+import { getStickerImage, isStickerImageReady } from "./images";
 
 /** Sticker radius at scale 1, in card px */
 export const BASE = 60;
@@ -20,10 +21,25 @@ export function stickerSize(id: string): [number, number] {
   const d = STK[id];
   if (d.kind === "shape") return [BASE * 2.15, BASE * 2.15];
   if (d.kind === "emoji") return [BASE * 2, BASE * 2];
+  if (d.kind === "image") {
+    const img = getStickerImage(d.src);
+    if (!isStickerImageReady(img)) return [BASE * 2.15, BASE * 2.15]; // placeholder footprint until loaded
+    const ar = img.naturalWidth / img.naturalHeight, target = BASE * 2;
+    return ar >= 1 ? [target, target / ar] : [target * ar, target];
+  }
   const ctx = mctx();
   ctx.font = d.kind === "bubble" ? BUBBLE_FONT : TEXT_FONT;
   const tw = ctx.measureText(d.text).width;
   return d.kind === "bubble" ? [tw + 70, 110] : [tw + 34, 72];
+}
+
+/** Human-readable label for a sticker definition (tray aria-labels etc.) */
+export function stickerLabel(d: StickerDef): string {
+  switch (d.kind) {
+    case "shape": return d.shape;
+    case "image": return d.label;
+    default: return d.text;
+  }
 }
 
 export function drawSticker(ctx: CanvasRenderingContext2D, st: PlacedSticker) {
@@ -64,6 +80,19 @@ export function drawSticker(ctx: CanvasRenderingContext2D, st: PlacedSticker) {
     ctx.strokeStyle = color; ctx.lineWidth = 6; rr(ctx, -bw / 2 + 6, -bh / 2 - 2, bw - 12, bh - 12, 34); ctx.stroke();
     ctx.font = BUBBLE_FONT; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillStyle = color; ctx.fillText(d.text, 0, -6);
+  } else if (d.kind === "image") {
+    const img = getStickerImage(d.src);
+    if (isStickerImageReady(img)) {
+      const [w, h] = stickerSize(st.id);
+      // white die-cut edge: ring of offset copies via a zero-blur white shadow (same trick as emoji below)
+      ctx.shadowColor = "#fff"; ctx.shadowBlur = 0;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        ctx.shadowOffsetX = Math.cos(a) * 7 * st.scale; ctx.shadowOffsetY = Math.sin(a) * 7 * st.scale;
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      }
+      noShadow(); shadow(); ctx.drawImage(img, -w / 2, -h / 2, w, h); noShadow(); ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    }
   } else {
     ctx.font = EMOJI_FONT; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     // white die-cut edge: the shadow of a glyph is its silhouette, so offset it all the way round

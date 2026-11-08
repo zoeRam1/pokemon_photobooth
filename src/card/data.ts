@@ -1,3 +1,5 @@
+import { CUSTOM_STICKERS } from "./customStickers";
+
 /** Card canvas size (export resolution) */
 export const W = 900;
 export const H = 1200;
@@ -67,11 +69,12 @@ export const RAR: Record<RarityId, Rarity> = Object.fromEntries(RARITIES.map(x =
 export type StickerDef =
   | { id: string; kind: "shape"; shape: ShapeName; color: string; face?: boolean }
   | { id: string; kind: "text" | "bubble"; text: string; color: string }
-  | { id: string; kind: "emoji"; text: string };
+  | { id: string; kind: "emoji"; text: string }
+  | { id: string; kind: "image"; src: string; label: string };
 
 export const STICKER_COLORS = ["#ffd93b", "#ff5fa2", "#ff8a3d", "#7fd3ff", "#8b6cff", "#4fd18b", "#ffffff", "#2b2f45"];
 
-export const STICKERS: StickerDef[] = [
+const BUILTIN_STICKERS: StickerDef[] = [
   { id: "star",    kind: "shape", shape: "star",    color: "#ffd93b", face: true },
   { id: "heart",   kind: "shape", shape: "heart",   color: "#ff5fa2", face: true },
   { id: "sparkle", kind: "shape", shape: "sparkle", color: "#7fd3ff" },
@@ -93,6 +96,8 @@ export const STICKERS: StickerDef[] = [
   { id: "e5", kind: "emoji", text: "🍰" }, { id: "e6", kind: "emoji", text: "💌" },
   { id: "e7", kind: "emoji", text: "🧸" }, { id: "e8", kind: "emoji", text: "🌸" },
 ];
+
+export const STICKERS: StickerDef[] = [...BUILTIN_STICKERS, ...CUSTOM_STICKERS];
 export const STK: Record<string, StickerDef> = Object.fromEntries(STICKERS.map(s => [s.id, s]));
 
 /** A sticker placed on the card (card px, radians) */

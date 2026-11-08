@@ -244,7 +244,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, S: CardState, photo: HTM
 
   // ---- logo wordmark overlapping the window's bottom edge
   ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.lineJoin = "round";
-  const logo = (S.brand || "PicMon").toUpperCase();
+  const logo = (S.brand).toUpperCase();
   const ls = fitFont(ctx, logo, 520, 96, 40, px => `${px}px "Lilita One", sans-serif`);
   ctx.translate(W / 2, 752); ctx.rotate(-0.025);
   ctx.lineWidth = 26; ctx.strokeStyle = "#0d1a5c"; ctx.strokeText(logo, 0, 6);

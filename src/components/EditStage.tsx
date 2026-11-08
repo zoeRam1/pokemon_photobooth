@@ -58,8 +58,8 @@ export function EditStage({ card, setCard, photo, fontsLoaded, toast, onChangePh
         x: WIN.x + WIN.w * (0.25 + Math.random() * 0.5),
         y: WIN.y + WIN.h * (0.2 + Math.random() * 0.6),
         rot: (Math.random() - 0.5) * 0.5,
-        scale: d.kind === "shape" || d.kind === "emoji" ? 0.9 : 1,
-        color: d.kind === "emoji" ? null : stickerColor,
+        scale: d.kind === "shape" || d.kind === "emoji" || d.kind === "image" ? 0.9 : 1,
+        color: d.kind === "emoji" || d.kind === "image" ? null : stickerColor,
       }],
     }));
     setSelectedUid(uid);

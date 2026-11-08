@@ -3,6 +3,7 @@ import { H, W, WIN, type CardState, type PlacedSticker } from "../card/data";
 import { clamp } from "../card/draw-utils";
 import { drawCard, photoLayout, textZone, type TextField } from "../card/drawCard";
 import { handlePos, hitSticker } from "../card/stickers";
+import { useImageLoadTick } from "../hooks/useImageLoadTick";
 
 type Drag =
   | { mode: "move"; uid: number; dx: number; dy: number }
@@ -30,11 +31,12 @@ export function CardEditor({ card, setCard, photo, fontsLoaded, selectedUid, set
   const ref = useRef<HTMLCanvasElement>(null);
   const drag = useRef<Drag | null>(null);
   const selRef = useRef(selectedUid); selRef.current = selectedUid;
+  const imgTick = useImageLoadTick();
 
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
     if (ctx) drawCard(ctx, card, photo, { selectedUid });
-  }, [card, photo, selectedUid, fontsLoaded]);
+  }, [card, photo, selectedUid, fontsLoaded, imgTick]);
 
   // mouse wheel resizes the selected sticker (needs a non-passive listener)
   useEffect(() => {

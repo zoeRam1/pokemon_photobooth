@@ -2,6 +2,8 @@
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 img{max-width:100%}
+/* keep real photos/canvases smooth even though the page background below is deliberately pixelated */
+img,canvas,video{image-rendering:auto}
 [hidden]{display:none!important}
 #root{height:100%}
 
@@ -18,12 +20,15 @@ img{max-width:100%}
 }
 html,body{height:100%}
 body{
-  background:var(--felt);
+  background-color:var(--felt);
+  /* dark scrim over the art so --muted/--ink text (tuned for the navy backdrop) stays legible against the sky */
   background-image:
-    radial-gradient(circle at 20% 10%, rgba(92,200,255,.16), transparent 40%),
-    radial-gradient(circle at 85% 90%, rgba(255,111,174,.14), transparent 45%),
-    radial-gradient(rgba(255,255,255,.06) 1.2px, transparent 1.3px);
-  background-size:auto,auto,22px 22px;
+    linear-gradient(rgba(10,14,36,.6), rgba(10,14,36,.6)),
+    url("assets/background/background.png");
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  image-rendering: pixelated;
   color:var(--ink); font-family:var(--body); font-size:15px;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));

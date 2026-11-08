@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
   FINISHES, FINISH_IDS, RARITIES, STICKERS, STICKER_COLORS, STK, THEMES, THEME_IDS,
-  defaultDesc, rollStats, type CardState, type PlacedSticker,
+  defaultDesc, rollStats, type CardState, type PlacedSticker, type StickerDef,
 } from "../card/data";
 import type { TextField } from "../card/drawCard";
-import { drawSticker, stickerSize } from "../card/stickers";
+import { drawSticker, stickerLabel, stickerSize } from "../card/stickers";
 import { updateSticker } from "./CardEditor";
+import { useImageLoadTick } from "../hooks/useImageLoadTick";
 
 type SetCard = Dispatch<SetStateAction<CardState>>;
 const usePatch = (setCard: SetCard) => (p: Partial<CardState>) => setCard(c => ({ ...c, ...p }));
@@ -137,16 +138,19 @@ export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCar
 
 /* ------------------------------------------------------------------ Stickers */
 
+const colorableKind = (kind: StickerDef["kind"]) => kind !== "emoji" && kind !== "image";
+
 function StickerThumb({ id, color, fontsLoaded }: { id: string; color: string | null; fontsLoaded: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const imgTick = useImageLoadTick();
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, 128, 128);
     const [w, h] = stickerSize(id);
     const scale = Math.min(104 / (w + 16), 104 / (h + 16));
-    drawSticker(ctx, { uid: 0, id, x: 64, y: 64, rot: 0, scale, color: STK[id].kind === "emoji" ? null : color });
-  }, [id, color, fontsLoaded]);
+    drawSticker(ctx, { uid: 0, id, x: 64, y: 64, rot: 0, scale, color: colorableKind(STK[id].kind) ? color : null });
+  }, [id, color, fontsLoaded, imgTick]);
   return <canvas ref={ref} width={128} height={128} />;
 }
 
@@ -164,7 +168,7 @@ export function StickersPanel(props: {
 
   const chooseColor = (c: string | null) => {
     setColor(c);
-    if (sel && STK[sel.id].kind !== "emoji") update({ color: c });
+    if (sel && colorableKind(STK[sel.id].kind)) update({ color: c });
   };
   const toFront = () => {
     if (!sel) return;
@@ -196,7 +200,7 @@ export function StickersPanel(props: {
         <p className="lbl">Tap to add</p>
         <div className="stickers">
           {STICKERS.map(d => (
-            <button key={d.id} aria-label={`Add ${"text" in d ? d.text : d.shape} sticker`} onClick={() => onAdd(d.id)}>
+            <button key={d.id} aria-label={`Add ${stickerLabel(d)} sticker`} onClick={() => onAdd(d.id)}>
               <StickerThumb id={d.id} color={color} fontsLoaded={fontsLoaded} />
             </button>
           ))}
