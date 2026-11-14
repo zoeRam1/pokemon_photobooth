@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
-  FINISHES, FINISH_IDS, RARITIES, STICKERS, STICKER_COLORS, STK, THEMES, THEME_IDS,
-  defaultDesc, rollStats, type CardState, type PlacedSticker, type StickerDef,
+  FINISHES, FINISH_IDS, STICKERS, STICKER_COLORS, STK,
+  rollStats, type CardState, type PlacedSticker, type StickerDef,
 } from "../card/data";
 import type { TextField } from "../card/drawCard";
 import { drawSticker, stickerLabel, stickerSize } from "../card/stickers";
@@ -91,10 +91,10 @@ export function DetailsPanel({ card, setCard, focusReq }: {
 
 export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCard }) {
   const patch = usePatch(setCard);
-  const pickTheme = (k: CardState["theme"]) => setCard(c => ({
-    ...c, theme: k,
-    desc: c.descAuto || c.desc === defaultDesc(c.theme) ? defaultDesc(k) : c.desc,
-  }));
+  // const pickTheme = (k: CardState["theme"]) => setCard(c => ({
+  //   ...c, theme: k,
+  //   desc: c.descAuto || c.desc === defaultDesc(c.theme) ? defaultDesc(k) : c.desc,
+  // }));
   return (
     <div className="tabpane">
       {/* <div>
