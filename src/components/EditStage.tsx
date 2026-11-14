@@ -113,7 +113,7 @@ export function EditStage({ card, setCard, photo, fontsLoaded, toast, onChangePh
 
           <div className="actions">
             <button className="btn" onClick={() => void onSave()} disabled={saving}>⬇ Save card (PNG)</button>
-            <div className="row">
+            <div style={{ 'marginTop': "5px" }} className="row">
               <button className="btn ghost sm" onClick={onRetake}>Retake photos</button>
               <button className="btn ghost sm" onClick={onNewPull}>New pull</button>
             </div>

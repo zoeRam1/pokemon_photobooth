@@ -97,7 +97,7 @@ export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCar
   }));
   return (
     <div className="tabpane">
-      <div>
+      {/* <div>
         <p className="lbl">Frame colour</p>
         <div className="swatches">
           {THEME_IDS.map(k => {
@@ -110,7 +110,7 @@ export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCar
             );
           })}
         </div>
-      </div>
+      </div> */}
       <div>
         <p className="lbl">Window finish</p>
         <div className="seg">
@@ -119,7 +119,7 @@ export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCar
           ))}
         </div>
       </div>
-      <div>
+      {/* <div>
         <p className="lbl">Rarity</p>
         <div className="seg">
           {RARITIES.map(R => (
@@ -128,7 +128,7 @@ export function FramePanel({ card, setCard }: { card: CardState; setCard: SetCar
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
       <label className="check">
         <input type="checkbox" checked={card.deco} onChange={e => patch({ deco: e.target.checked })} /> Big decorative shapes
       </label>
