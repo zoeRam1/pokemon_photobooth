@@ -109,7 +109,7 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
           <div className={`flash${flashKey ? " go" : ""}`} key={flashKey} />
         </div>
 
-        <div className="row">
+        <div className="row" style={{ 'marginTop': "10px" }}>
           <button className="btn" onClick={() => void snap(1)} disabled={!live || busy}>📸 Snap</button>
           <button className="btn pink" onClick={() => void snap(4)} disabled={!live || busy}>Burst ×4</button>
           {isTouch() && (

@@ -21,21 +21,25 @@ img,canvas,video{image-rendering:auto}
 html,body{height:100%}
 body{
   background-color:var(--felt);
-  /* dark scrim over the art so --muted/--ink text (tuned for the navy backdrop) stays legible against the sky */
-  background-image:
-    linear-gradient(rgba(10,14,36,.6), rgba(10,14,36,.6)),
-    url("assets/background/background.png");
-  background-size: cover, cover;
-  background-position: center, center;
-  background-repeat: no-repeat, no-repeat;
-  image-rendering: pixelated;
   color:var(--ink); font-family:var(--body); font-size:15px;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
 button,input,textarea,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--sky);outline-offset:3px}
-.stage{min-height:100%;display:flex;flex-direction:column;align-items:center;padding-block:20px 32px;gap:18px}
+/* pixel-art backdrop pinned to the window, so it never stretches with page height or shows past the scrim */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  /* dark scrim over the art so --muted/--ink text (tuned for the navy backdrop) stays legible against the sky */
+  background-image:
+    linear-gradient(rgba(10,14,36,.6), rgba(10,14,36,.6)),
+    url("assets/background/background.png");
+  background-size:cover;
+  background-position:center 40%;
+  background-repeat:no-repeat;
+  image-rendering:pixelated;
+}
+.stage{box-sizing:border-box;min-height:100%;display:flex;flex-direction:column;align-items:center;padding-block:20px 32px;gap:18px}
 
 /* ---------- buttons ---------- */
 .btn{
