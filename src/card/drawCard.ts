@@ -263,7 +263,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, S: CardState, photo: HTM
 
   // ---- footer
   ctx.save(); ctx.font = `700 22px Rubik, sans-serif`; ctx.textAlign = "right"; ctx.fillStyle = T.ink; ctx.globalAlpha = 0.85;
-  ctx.fillText(`${S.brand || "PicMon"} ★ ${new Date().getFullYear()} ${S.studio}.`, W - 64, H - 54);
+  ctx.fillText(`PicMon ★ ${new Date().getFullYear()} ${S.studio}.`, W - 64, H - 54);
   ctx.restore();
 
   // ---- big decorative shapes

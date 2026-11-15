@@ -75,7 +75,7 @@ export function DetailsPanel({ card, setCard, focusReq }: {
       <div className="two">
         <div className="field">
           <label htmlFor="fBrand">Logo</label>
-          <input id="fBrand" maxLength={14} value={card.brand} onChange={e => patch({ brand: e.target.value })} />
+          <input id="fBrand" maxLength={14} value={card.brand} placeholder="Your brand name..." onChange={e => patch({ brand: e.target.value })} />
         </div>
         <div className="field">
           <label htmlFor="fStudio">Studio badge</label>
