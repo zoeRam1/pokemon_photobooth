@@ -8,13 +8,26 @@ export interface DrawOptions {
   placeholder?: boolean;
   /** uid of the sticker to outline with the edit handle */
   selectedUid?: number | null;
+  /**
+   * Draw only part of the card: "under" = everything beneath the photo window,
+   * "over" = everything on top of it (stars, logo, deco, stickers…) on a transparent canvas.
+   * Lets the booth cache both and redraw just the window for a live preview.
+   */
+  layer?: "all" | "under" | "over";
 }
+
+/** Anything that can fill the photo window */
+export type PhotoSource = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
+const sourceSize = (src: PhotoSource): [number, number] =>
+  src instanceof HTMLImageElement ? [src.naturalWidth || src.width, src.naturalHeight || src.height]
+  : src instanceof HTMLVideoElement ? [src.videoWidth, src.videoHeight]
+  : [src.width, src.height];
 
 export interface PhotoLayout { dx: number; dy: number; dw: number; dh: number; ox: number; oy: number }
 
 /** Cover-fits the photo in the window, clamping the pan so the window is always filled. */
-export function photoLayout(img: HTMLImageElement, zoom: number, ox: number, oy: number): PhotoLayout {
-  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+export function photoLayout(img: PhotoSource, zoom: number, ox: number, oy: number): PhotoLayout {
+  const [iw, ih] = sourceSize(img);
   const sc = Math.max(WIN.w / iw, WIN.h / ih) * zoom;
   const dw = iw * sc, dh = ih * sc;
   const mx = (dw - WIN.w) / 2, my = (dh - WIN.h) / 2;
@@ -85,10 +98,41 @@ function wrap(ctx: CanvasRenderingContext2D, txt: string, max: number): string[]
   return out;
 }
 
+/**
+ * Fills the photo window: sky backdrop, then the photo (cover-fit, zoom/pan from the card state),
+ * or the "?" placeholder, then the inner bevel. `mirror` flips the source like a selfie camera.
+ */
+export function drawWindow(
+  ctx: CanvasRenderingContext2D, S: CardState, photo: PhotoSource | null,
+  opts: { placeholder?: boolean; mirror?: boolean; zoom?: number; ox?: number; oy?: number } = {},
+) {
+  const T = THEMES[S.theme];
+  ctx.save(); rr(ctx, WIN.x, WIN.y, WIN.w, WIN.h, 8); ctx.clip();
+  drawSky(ctx, T, rng(S.seed + 7));
+  const [pw] = photo ? sourceSize(photo) : [0];
+  if (photo && pw) {
+    const L = photoLayout(photo, opts.zoom ?? S.zoom, opts.ox ?? S.ox, opts.oy ?? S.oy);
+    if (opts.mirror) {
+      ctx.translate(L.dx * 2 + L.dw, 0); ctx.scale(-1, 1);
+    }
+    ctx.drawImage(photo, L.dx, L.dy, L.dw, L.dh);
+  } else if (opts.placeholder !== false) drawPlaceholder(ctx, T);
+  ctx.restore();
+  ctx.save(); rr(ctx, WIN.x, WIN.y, WIN.w, WIN.h, 8); ctx.clip();
+  ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,.18)"; rr(ctx, WIN.x, WIN.y, WIN.w, WIN.h, 8); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,.9)"; rr(ctx, WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2, 9); ctx.stroke();
+  ctx.restore();
+}
+
 export function drawCard(ctx: CanvasRenderingContext2D, S: CardState, photo: HTMLImageElement | null, opts: DrawOptions = {}) {
   const T = THEMES[S.theme], F = FINISHES[S.finish], R = RAR[S.rarity];
   const rand = rng(S.seed);
+  const layer = opts.layer ?? "all";
   ctx.save(); ctx.clearRect(0, 0, W, H);
+
+  if (layer !== "over") {
 
   // ---- outer holo border
   rr(ctx, 0, 0, W, H, 40); ctx.save(); ctx.clip();
@@ -171,15 +215,11 @@ export function drawCard(ctx: CanvasRenderingContext2D, S: CardState, photo: HTM
   ctx.restore();
 
   // ---- window contents
-  ctx.save(); rr(ctx, WIN.x, WIN.y, WIN.w, WIN.h, 8); ctx.clip();
-  drawSky(ctx, T, rng(S.seed + 7));
-  if (photo) { const L = photoLayout(photo, S.zoom, S.ox, S.oy); ctx.drawImage(photo, L.dx, L.dy, L.dw, L.dh); }
-  else if (opts.placeholder !== false) drawPlaceholder(ctx, T);
-  ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,.18)"; rr(ctx, WIN.x, WIN.y, WIN.w, WIN.h, 8); ctx.stroke();
-  ctx.restore();
-  ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,.9)"; rr(ctx, WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2, 9); ctx.stroke();
+  if (layer === "all") drawWindow(ctx, S, photo, { placeholder: opts.placeholder });
+  if (layer === "under") { ctx.restore(); return; }
+  }
 
-  // ---- rarity badge + stars
+  // ---- rarity badge + stars (everything from here sits on top of the window)
   ctx.save(); ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.lineJoin = "round";
   ctx.font = `italic 900 92px Rubik, sans-serif`;
   const bx = W - 52, by = 128, bw = ctx.measureText(S.rarity).width;

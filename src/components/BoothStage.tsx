@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { WIN, type CardState } from "../card/data";
+import { H, W, WIN, type CardState } from "../card/data";
+import { drawCard, drawWindow } from "../card/drawCard";
+import { fontsReady } from "../lib/fonts";
 import { useCamera } from "../hooks/useCamera";
 import type { Shot } from "../App";
 import { CardChip, sleep } from "./common";
@@ -48,6 +50,36 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
   useEffect(() => { const s = stripRef.current; if (s) s.scrollLeft = s.scrollWidth; }, [shots.length]);
 
   const live = status === "live";
+  const previewRef = useRef<HTMLCanvasElement>(null);
+
+  // Live card preview: the card's "under" and "over" layers are rendered once per card change,
+  // and each animation frame only redraws the window with the current camera frame between them.
+  useEffect(() => {
+    const canvas = previewRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
+    const makeLayer = (layer: "under" | "over") => {
+      const c = document.createElement("canvas"); c.width = W; c.height = H;
+      drawCard(c.getContext("2d")!, card, null, { layer });
+      return c;
+    };
+    let under = makeLayer("under"), over = makeLayer("over");
+    let raf = 0, stopped = false;
+    // redraw text layers once the card fonts arrive
+    void fontsReady.then(() => { if (!stopped) { under = makeLayer("under"); over = makeLayer("over"); } });
+    const frame = () => {
+      const v = videoRef.current;
+      const hasFrame = !!v && v.readyState >= 2 && v.videoWidth > 0;
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(under, 0, 0);
+      // zoom 1 / no pan matches capture(): a centred crop at the window's aspect
+      drawWindow(ctx, card, hasFrame ? v : null, { mirror: true, zoom: 1, ox: 0, oy: 0, placeholder: true });
+      ctx.drawImage(over, 0, 0);
+      if (!stopped) raf = requestAnimationFrame(frame);
+    };
+    frame();
+    return () => { stopped = true; cancelAnimationFrame(raf); };
+  }, [card, videoRef]);
 
   const countdown = async (n: number) => {
     for (let i = n; i > 0; i--) {
@@ -96,18 +128,21 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
       </div>
       <div className="booth">
         <div className="vf">
-          <video ref={videoRef} playsInline muted autoPlay />
-          {status === "error" && (
-            <div className="msg">
-              <strong>Live camera unavailable</strong>
-              <p>{error}</p>
-              <button className="btn sm" onClick={() => void retry()}>Try the camera</button>
-            </div>
-          )}
-          <span className="corner c1" /><span className="corner c2" /><span className="corner c3" /><span className="corner c4" />
-          <div className="count">{count != null && <span key={countKey}>{count}</span>}</div>
-          <div className={`flash${flashKey ? " go" : ""}`} key={flashKey} />
+          <canvas ref={previewRef} width={W} height={H} aria-label="Live preview of your card" />
+          {/* camera feed source: drawn into the card canvas, never shown directly */}
+          <video ref={videoRef} className="vf-src" playsInline muted autoPlay />
+          <div className="vf-win">
+            <div className="count">{count != null && <span key={countKey}>{count}</span>}</div>
+            <div className={`flash${flashKey ? " go" : ""}`} key={flashKey} />
+          </div>
         </div>
+        {status === "error" && (
+          <div className="cam-msg">
+            <strong>Live camera unavailable</strong>
+            <p>{error}</p>
+            <button className="btn sm" onClick={() => void retry()}>Try the camera</button>
+          </div>
+        )}
 
         <div className="row" style={{ 'marginTop': "10px" }}>
           <button className="btn" onClick={() => void snap(1)} disabled={!live || busy}>📸 Snap</button>

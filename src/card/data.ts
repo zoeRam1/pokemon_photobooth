@@ -140,7 +140,7 @@ export const defaultDesc = (theme: ThemeId) =>
 export function initialCard(): CardState {
   return {
     theme: "prism", finish: "silver", rarity: "R", seed: 1, deco: true,
-    name: "your.name", brand: "PicMon", studio: "Photo Booth Club",
+    name: "your.name", brand: "", studio: "Photo Booth Club",
     lab1: "ATK", lab2: "DEF", atk: "4200", def: "3800",
     desc: defaultDesc("prism"), descAuto: true,
     zoom: 1, ox: 0, oy: 0, stickers: [],
