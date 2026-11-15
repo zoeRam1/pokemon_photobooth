@@ -47,7 +47,7 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
   const alive = useRef(true);
   // StrictMode double-invokes effects in dev: reset true on (re)mount, not just false on cleanup
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => { const s = stripRef.current; if (s) s.scrollLeft = s.scrollWidth; }, [shots.length]);
+  useEffect(() => { const s = stripRef.current; if (s) { s.scrollLeft = s.scrollWidth; s.scrollTop = s.scrollHeight; } }, [shots.length]);
 
   const live = status === "live";
   const previewRef = useRef<HTMLCanvasElement>(null);
@@ -127,6 +127,7 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
         <CardChip card={card} />
       </div>
       <div className="booth">
+        <div className="booth-main">
         <div className="vf">
           <canvas ref={previewRef} width={W} height={H} aria-label="Live preview of your card" />
           {/* camera feed source: drawn into the card canvas, never shown directly */}
@@ -145,18 +146,26 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
         )}
 
         <div className="row" style={{ 'marginTop': "10px" }}>
+          {/* primary CTAs are filled (Snap, Done); everything else is a quiet outline */}
           <button className="btn" onClick={() => void snap(1)} disabled={!live || busy}>📸 Snap</button>
-          <button className="btn pink" onClick={() => void snap(4)} disabled={!live || busy}>Burst ×4</button>
+          <button className="btn ghost" onClick={() => void snap(4)} disabled={!live || busy}>Burst ×4</button>
           {isTouch() && (
             <label className="btn ghost">Phone camera
               <input type="file" accept="image/*" capture="user" onChange={onFiles} />
             </label>
           )}
-          <label className="btn ghost">Upload photos
+          <label className="btn ghost icon" title="Upload photos" aria-label="Upload photos">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 15V4" /><path d="m7 9 5-5 5 5" /><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+            </svg>
             <input type="file" accept="image/*" multiple onChange={onFiles} />
           </label>
+          <button className="btn pink done" onClick={onDone} disabled={!shots.length}>Done</button>
+        </div>
         </div>
 
+        {/* portrait: a strip below the buttons; landscape: a column to the card's right */}
+        <aside className="shots" aria-label="Your shots" style={{ 'height': '100%' }}>
         <div className="strip" ref={stripRef}>
           {shots.map((s, i) => (
             <div className="thumb" key={s.id}>
@@ -165,10 +174,7 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
             </div>
           ))}
         </div>
-
-        <button className="btn pink" onClick={onDone} disabled={!shots.length}>
-          {shots.length ? `Done · pick from ${shots.length} shot${shots.length > 1 ? "s" : ""}` : "Done · pick a photo"}
-        </button>
+        </aside>
       </div>
     </section>
   );
