@@ -112,7 +112,7 @@ export function BoothStage({ card, shots, addShot, removeShot, onBack, onDone }:
     await countdown(3);
     for (let i = 0; i < n && alive.current; i++) {
       capture();
-      if (i < n - 1) { await sleep(350); await countdown(1); }
+      if (i < n - 1) { await sleep(350); await countdown(3); }
     }
     if (alive.current) setBusy(false);
   };
