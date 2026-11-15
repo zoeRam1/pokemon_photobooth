@@ -88,7 +88,7 @@ export function EditStage({ card, setCard, photo, fontsLoaded, toast, onChangePh
           />
           <p className="hint">
             Tap the name, stats or caption on the card to edit them. Tap a sticker to add it. Drag stickers to move them,
-            drag the yellow dot to resize and spin. Drag your photo inside the window to reposition it.
+            drag the yellow dot to resize and spin.
           </p>
         </div>
 

@@ -886,7 +886,6 @@ body::before {
 }
 
 .strip:empty::before {
-  content: "Your shots will line up here.";
   color: var(--muted);
   font-weight: 700;
   margin: auto;
